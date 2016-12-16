@@ -3,9 +3,10 @@ library(shinydashboard)
 library(reshape2)
 library(plyr)
 library(ggplot2)
+library(MASS)
 options(shiny.maxRequestSize = 9*1024^2)
 
-server <- function(input, output) {
+server <- function(input, output,session) {
   output$hist <- renderPlot({
     title<-"Histograma de las Simulaciones"
     set.seed(input$seed)
@@ -55,19 +56,77 @@ server <- function(input, output) {
   })
   
   
-  output$contents <- renderTable({
-    # input$file1 will be NULL initially. After the user selects
-    # and uploads a file, it will be a data frame with 'name',
-    # 'size', 'type', and 'datapath' columns. The 'datapath'
-    # column will contain the local filenames where the data can
-    # be found.
+  
+  
+  data <- reactive({ 
+    req(input$file1) ## ?req #  require that the input is available
     
-    inFile <- input$file1
+    inFile <- input$file1 
     
-    if (is.null(inFile))
-      return(NULL)
+    # tested with a following dataset: write.csv(mtcars, "mtcars.csv")
+    # and                              write.csv(iris, "iris.csv")
+    df <- read.csv(inFile$datapath, header = input$header, sep = input$sep,
+                   quote = input$quote)
     
-    read.csv(inFile$datapath, header = input$header,
-             sep = input$sep, quote = input$quote)
+    
+    # Update inputs (you could create an observer with both updateSel...)
+    # You can also constraint your choices. If you wanted select only numeric
+    # variables you could set "choices = sapply(df, is.numeric)"
+    # It depends on what do you want to do later on.
+    
+    updateSelectInput(session, inputId = 'xcol', label = 'X Variable',
+                      choices = names(df), selected = names(df))
+    updateSelectInput(session, inputId = 'ycol', label = 'Y Variable',
+                      choices = names(df), selected = names(df)[2])
+    
+    return(df)
   })
+  
+  output$contents <- renderTable({
+    data()
+  })
+  
+  output$MyPlot1 <- renderPlot({
+    # for a histogram: remove the second variable (it has to be numeric as well):
+    # x    <- data()[, c(input$xcol, input$ycol)]
+    # bins <- nrow(data())
+    # hist(x, breaks = bins, col = 'darkgray', border = 'white')
+    
+    # Correct way:
+    # x    <- data()[, input$xcol]
+    # bins <- nrow(data())
+    # hist(x, breaks = bins, col = 'darkgray', border = 'white')
+    
+    
+    # I Since you have two inputs I decided to make a scatterplot
+    x <- data()[, c(input$xcol, input$ycol)]
+    plot(x, main = "Scatterplot")
+    
+  })
+  
+  output$MyPlot2 <- renderPlot({
+    
+    # Correct way:
+    x    <- data()[, input$xcol]
+    bins <- nrow(data())
+    aux <- fitdistr(x, "normal")
+    hist(x, breaks = bins, col = 'darkgray', border = 'white', main = "Distribucion de X", probability = TRUE)
+    curve(dnorm(x,aux$estimate["mean"],aux$estimate["sd"]),add=T,col="red") 
+    
+  })
+  
+  output$MyPlot3 <- renderPlot({
+    
+    x    <- data()[, input$ycol]
+    bins <- nrow(data())
+    aux <- fitdistr(x, "normal")
+    
+    hist(x, breaks = bins, col = 'darkgray', border = 'white', main = "Distribucion de Y", probability = TRUE)
+    curve(dnorm(x,aux$estimate["mean"],aux$estimate["sd"]),add=T,col="red")    
+    
+    
+    
+  })
+  
+  
 }
