@@ -3,6 +3,7 @@ library(shinydashboard)
 library(reshape2)
 library(plyr)
 library(ggplot2)
+library(MASS)
 options(shiny.maxRequestSize = 9*1024^2)
 
 ui <- dashboardPage(
@@ -75,36 +76,56 @@ ui <- dashboardPage(
       
       # Third tab content
       tabItem(tabName = "carga",
-              fluidRow(titlePanel("Carga de Archivos"),
-                       sidebarLayout(          
-                         sidebarPanel(
-                           fileInput('file1', 'Choose file to upload',
-                                     accept = c(
-                                       'text/csv',
-                                       'text/comma-separated-values',
-                                       'text/tab-separated-values',
-                                       'text/plain',
-                                       '.csv',
-                                       '.tsv'
-                                     )
+              titlePanel("Carga de archivo"),
+              tabsetPanel(
+                tabPanel("Cargar el Dataset",
+                         titlePanel("Cargando Datos"),
+                         sidebarLayout(
+                           sidebarPanel(
+                             fileInput('file1', 'Choose CSV File',
+                                       accept=c('text/csv', 
+                                                'text/comma-separated-values,text/plain', 
+                                                '.csv')),
+                             
+                             # added interface for uploading data from
+                             # http://shiny.rstudio.com/gallery/file-upload.html
+                             tags$br(),
+                             checkboxInput('header', 'Header', TRUE),
+                             radioButtons('sep', 'Separator',
+                                          c(Comma=',',
+                                            Semicolon=';',
+                                            Tab='\t'),
+                                          ','),
+                             radioButtons('quote', 'Quote',
+                                          c(None='',
+                                            'Double Quote'='"',
+                                            'Single Quote'="'"),
+                                          '"')
+                             
                            ),
-                           tags$hr(),
-                           checkboxInput('header', 'Header', TRUE),
-                           radioButtons('sep', 'Separator',
-                                        c(Comma=',',
-                                          Semicolon=';',
-                                          Tab='\t'),
-                                        ','),
-                           radioButtons('quote', 'Quote',
-                                        c(None='',
-                                          'Double Quote'='"',
-                                          'Single Quote'="'"),
-                                        '"'),
-                           tags$hr()
-                         ),box(
-                           h2("Datos Cargados"),
-                           tableOutput('contents'))
-                       )
+                           mainPanel(
+                             tableOutput('contents')
+                           )
+                         )
+                ),
+                tabPanel("Ver Distribuciones para Variables",
+                         pageWithSidebar(
+                           headerPanel('Plot de X vs Y'),
+                           sidebarPanel(
+                             
+                             # "Empty inputs" - they will be updated after the data is uploaded
+                             selectInput('xcol', 'X Variable', ""),
+                             selectInput('ycol', 'Y Variable', "", selected = "")
+                             
+                           ),
+                           mainPanel(
+                             plotOutput('MyPlot1'),
+                             plotOutput('MyPlot2'),
+                             plotOutput('MyPlot3')
+                           )
+                         )
+                )
+                
               )
       )
     )
