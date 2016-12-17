@@ -8,6 +8,7 @@ library(DT)
 options(shiny.maxRequestSize = 9*1024^2)
 Rcpp::sourceCpp("myMCMC.cpp")
 
+data <- read.csv("Dataset.csv", header = TRUE)
 
 ui <- dashboardPage(
   dashboardHeader(title = "Dashboard Final"),
@@ -110,18 +111,25 @@ ui <- dashboardPage(
                            )
                          )
                 ),
-                tabPanel("Ver Distribuciones para Variables",
+                tabPanel("Distribucion por Variable",
                          pageWithSidebar(
                            headerPanel('Plot de X vs Y'),
                            sidebarPanel(
                              
                              # "Empty inputs" - they will be updated after the data is uploaded
+                             
                              selectInput('xcol', 'X Variable', ""),
                              selectInput('ycol', 'Y Variable', "", selected = ""),
                              numericInput("number", "Numero de cadenas", value=1, min=1, max=4, step=1),
                              sliderInput("length", "Tamano de la cadena", min=10000, max=100000, value=50000),
                              sliderInput("sBurnin", "Burnin", min=100, max=5000, value=1000),
-                             actionButton("button", "Comenzar!!")  
+                             selectInput("X",
+                                                   "Independiente:",
+                                                   c(unique(as.character(names(data))))),
+                             selectInput("Y",
+                                                   "Dependiente:",
+                                                   c(rev(unique(as.character(names(data)))))),
+                             actionButton("button", "Comenzar!!") 
                              
                            ),
                            mainPanel(
@@ -141,19 +149,20 @@ ui <- dashboardPage(
                                                   fluidRow(
                                                     column(8,DT::dataTableOutput("cadenasMC"))
                                                   )),
-                                         tabPanel("Histogramas",
+                                         tabPanel("Graficas",
                                                   fluidRow(
-                                                    column(2, plotOutput("h_alfa")),
-                                                    column(2, plotOutput("h_beta")),
-                                                    column(2, plotOutput("h_sigma")),
-                                                    h1("A priori en rosa y a posteriori en azul"),
-                                                    column(2, plotOutput("dens_alfa")),
-                                                    column(2, plotOutput("dens_beta")),
-                                                    column(2, plotOutput("dens_sigma")),
+                                                    h1("Histogramas"),
+                                                    column(4, plotOutput("h_alfa")),
+                                                    column(4, plotOutput("h_beta")),
+                                                    column(4, plotOutput("h_sigma")),
+                                                    h1("A priori & A posteriori"),
+                                                    column(4, plotOutput("dens_alfa")),
+                                                    column(4, plotOutput("dens_beta")),
+                                                    column(4, plotOutput("dens_sigma")),
                                                     h1("Series"),
-                                                    column(2, plotOutput("c_alpha")),
-                                                    column(2, plotOutput("c_beta")),
-                                                    column(2, plotOutput("c_sigma"))
+                                                    column(4, plotOutput("c_alpha")),
+                                                    column(4, plotOutput("c_beta")),
+                                                    column(4, plotOutput("c_sigma"))
                                                   )),
                                          tabPanel("Valores",
                                                   fluidRow(

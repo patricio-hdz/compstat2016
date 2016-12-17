@@ -1,3 +1,4 @@
+
 library(shiny)
 library(shinydashboard)
 library(reshape2)
@@ -8,6 +9,7 @@ library(DT)
 options(shiny.maxRequestSize = 9*1024^2)
 Rcpp::sourceCpp("myMCMC.cpp")
 
+data <- read.csv("Dataset.csv", header = TRUE)
 
 ':=' <- function(lhs, rhs) {
   frame <- parent.frame()
@@ -80,7 +82,7 @@ server <- function(input, output,session) {
   
   
   
-  data <- reactive({ 
+  data2 <- reactive({ 
     req(input$file1) ## ?req #  require that the input is available
     
     inFile <- input$file1 
@@ -99,7 +101,7 @@ server <- function(input, output,session) {
   })
   
   output$contents <- renderTable({
-    data()
+    data2()
   })
   
   
@@ -107,11 +109,11 @@ server <- function(input, output,session) {
   Asignando <- reactive({
     nombs <- c(names(data))
     for(i in 1:length(nombs)){
-      if(input$xcol == nombs[i]) {
+      if(input$X == nombs[i]) {
         indep <- i
         iesimo <- nombs[i]
       }
-      if(input$ycol == nombs[i]) {
+      if(input$Y == nombs[i]) {
         depen <- i
         named <- nombs[i]
       }
@@ -121,8 +123,8 @@ server <- function(input, output,session) {
   
   
   output$MyPlot1 <- renderPlot({
-    x <- data()[, c(input$xcol, input$ycol)]
-    plot(x, main = "Scatterplot")
+    x <- data2()[, c(input$xcol, input$ycol)]
+    plot(x, main = "Distribucion de los datos")
     
   })
   
@@ -172,7 +174,7 @@ server <- function(input, output,session) {
     c(indep,depen,iesimo,named) := Asignando()
     theta0 <- c(1,1,1)
     cadena <- myMCMC(x = data[,indep], y = data[,depen], startValue=theta0, iterations=input$length)
-    return(data.frame(alpha=chain[,1], beta=chain[,2], tau=chain[,3]))
+    return(data.frame(alpha=cadena[,1], beta=cadena[,2], tau=cadena[,3]))
   })
   
   
@@ -186,7 +188,7 @@ server <- function(input, output,session) {
       aux2 <- myMCMC(x = data[,indep], y = data[,depen], startValue=aux, iterations=input$length)
       aux2 <- data.frame(alfa=aux2[,1], beta=aux2[,2], sigma=aux2[,3])
       cadena <- cbind(cadena, aux2)
-      return(chain)
+      return(cadena)
     }
     
   })
@@ -384,8 +386,8 @@ server <- function(input, output,session) {
   output$checking <- renderPlot({
     c(indep,depen,iesimo,named) := Asignando()
     vals <- df()[-(1:input$sBurnin),]
-    alfa <- mean(valores[,1])
-    beta <- mean(valores[,2])
+    alfa <- mean(vals[,1])
+    beta <- mean(vals[,2])
     data$Sesiones <- data[,indep]*beta + alpha
     plot(data[,indep],data[,depen],main="Regresion",
          xlab=iesimo, ylab=named)
