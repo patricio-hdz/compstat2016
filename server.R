@@ -6,7 +6,7 @@ library(ggplot2)
 library(MASS)
 library(DT)
 options(shiny.maxRequestSize = 9*1024^2)
-
+Rcpp::sourceCpp("myMCMC.cpp")
 
 
 ':=' <- function(lhs, rhs) {
@@ -107,11 +107,11 @@ server <- function(input, output,session) {
   Asignando <- reactive({
     nombs <- c(names(data))
     for(i in 1:length(nombs)){
-      if(input$X == nombs[i]) {
+      if(input$xcol == nombs[i]) {
         indep <- i
         iesimo <- nombs[i]
       }
-      if(input$Y == nombs[i]) {
+      if(input$ycol == nombs[i]) {
         depen <- i
         named <- nombs[i]
       }
@@ -262,9 +262,9 @@ server <- function(input, output,session) {
         geom_area(data=fit,aes(x=xfit,y=yfit),fill="#06b9C7",alpha=0.3)+
         geom_line(data=dfal,aes(x=alph,y=dalph),colour="#990000",size=1.5)+
         geom_area(data=dfal,aes(x=alph,y=dalph),fill="#ff00ff",alpha=0.3)+ 
-        ylab('Pr(alpha)') + 
-        xlab("alpha")+ 
-        ggtitle("A priori y A posteriori de Alfa")
+        ylab('Pr(Alpha)') + 
+        xlab("Alpha")+ 
+        ggtitle("A priori y a posteriori de Alfa")
       })
     }
   })
@@ -313,9 +313,9 @@ server <- function(input, output,session) {
         geom_area(data=fit,aes(x=xfit,y=yfit),fill="#06b9C7",alpha=0.3)+
         geom_line(data=dfsi,aes(x=sigma,y=distr),colour="#990000",size=1.5)+
         geom_area(data=dfsi,aes(x=sigma,y=distr),fill="#ff00ff",alpha=0.3)+ 
-        ylab('P(alpha)') + 
-        xlab("alpha")+ 
-        ggtitle("Densidad a priori y a posteriori de alpha")
+        ylab('Pr(sigma)') + 
+        xlab("sigma")+ 
+        ggtitle("A priori y a posteriori de Sigma")
       })
     }
   })
@@ -345,9 +345,9 @@ server <- function(input, output,session) {
       df <- data.frame(beta_sb,iteracion)
       ggplot(df,aes(x=iteracion,y=beta_sb))+
         geom_line()+
-        ylab('beta') + 
+        ylab('Beta') + 
         xlab("Iteracion")+ 
-        ggtitle("Serie de beta")
+        ggtitle("Serie de Beta")
       })
     }
   })
@@ -361,9 +361,9 @@ server <- function(input, output,session) {
       df <- data.frame(sigma_sb,iteracion)
       ggplot(df,aes(x=iteracion,y=sigma_sb))+
         geom_line()+
-        ylab('sigma') + 
+        ylab('Sigma') + 
         xlab("Iteracion")+ 
-        ggtitle("Serie de sigma")
+        ggtitle("Serie de Sigma")
       })
     }
   })
@@ -387,7 +387,7 @@ server <- function(input, output,session) {
     alfa <- mean(valores[,1])
     beta <- mean(valores[,2])
     data$Sesiones <- data[,indep]*beta + alpha
-    plot(data[,indep],data[,depen],main="Regresión",
+    plot(data[,indep],data[,depen],main="Regresion",
          xlab=iesimo, ylab=named)
     lines(data[,indep],data$Sesiones)
   })
