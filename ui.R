@@ -4,7 +4,10 @@ library(reshape2)
 library(plyr)
 library(ggplot2)
 library(MASS)
+library(DT)
 options(shiny.maxRequestSize = 9*1024^2)
+Rcpp::sourceCpp("myMCMC.cpp")
+
 
 ui <- dashboardPage(
   dashboardHeader(title = "Dashboard Final"),
@@ -12,8 +15,7 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Funcion Inversa", tabName = "funinv", icon = icon("bar-chart")),
       menuItem("Integral", tabName = "integral", icon = icon("bar-chart")),
-      menuItem("Cargar Archivo", tabName = "carga", icon = icon("bar-chart")),
-      menuItem("Tabla", tabName = "tabla", icon = icon("bar-chart"))
+      menuItem("Analisis de Regresion Bayesiano", tabName = "carga", icon = icon("bar-chart"))
     )
   ),
   dashboardBody(
@@ -115,13 +117,50 @@ ui <- dashboardPage(
                              
                              # "Empty inputs" - they will be updated after the data is uploaded
                              selectInput('xcol', 'X Variable', ""),
-                             selectInput('ycol', 'Y Variable', "", selected = "")
+                             selectInput('ycol', 'Y Variable', "", selected = ""),
+                             numericInput("number", "Numero de cadenas", value=1, min=1, max=4, step=1),
+                             sliderInput("length", "Tamaño de la cadena", min=10000, max=100000, value=50000),
+                             sliderInput("sBurnin", "Burnin", min=100, max=5000, value=1000),
+                             actionButton("button", "Comenzar!!")  
                              
                            ),
                            mainPanel(
-                             plotOutput('MyPlot1'),
-                             plotOutput('MyPlot2'),
-                             plotOutput('MyPlot3')
+                             tabsetPanel(type="tabs",
+                                         tabPanel("Data", 
+                                                  fluidRow(
+                                                    plotOutput("MyPlot1"),
+                                                    h2("A PRIORIS"),
+                                                    h4("Alfa con a priori Normal"),
+                                                    plotOutput("distribalfa"),
+                                                    h4("Beta con a priori Normal"),
+                                                    plotOutput("distribeta"),
+                                                    h4("Sigma con a priori Gamma"),
+                                                    plotOutput("distribsigma")
+                                                  )),
+                                         tabPanel("Cadenas",
+                                                  fluidRow(
+                                                    column(8,DT::dataTableOutput("cadenasMC"))
+                                                  )),
+                                         tabPanel("Histogramas",
+                                                  fluidRow(
+                                                    column(2, plotOutput("h_alfa")),
+                                                    column(2, plotOutput("h_beta")),
+                                                    column(2, plotOutput("h_sigma")),
+                                                    h1("A priori en rosa y a posteriori en azul"),
+                                                    column(2, plotOutput("dens_alfa")),
+                                                    column(2, plotOutput("dens_beta")),
+                                                    column(2, plotOutput("dens_sigma")),
+                                                    h1("Series"),
+                                                    column(2, plotOutput("c_alpha")),
+                                                    column(2, plotOutput("c_beta")),
+                                                    column(2, plotOutput("c_sigma"))
+                                                  )),
+                                         tabPanel("Valores",
+                                                  fluidRow(
+                                                    column(8,DT::dataTableOutput("vals")),
+                                                    plotOutput("checking")
+                                                  ))
+                             )
                            )
                          )
                 )
