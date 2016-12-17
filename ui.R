@@ -119,7 +119,7 @@ ui <- dashboardPage(
                              selectInput('xcol', 'X Variable', ""),
                              selectInput('ycol', 'Y Variable', "", selected = ""),
                              numericInput("number", "Numero de cadenas", value=1, min=1, max=4, step=1),
-                             sliderInput("length", "Tamaño de la cadena", min=10000, max=100000, value=50000),
+                             sliderInput("length", "Tamano de la cadena", min=10000, max=100000, value=50000),
                              sliderInput("sBurnin", "Burnin", min=100, max=5000, value=1000),
                              actionButton("button", "Comenzar!!")  
                              
