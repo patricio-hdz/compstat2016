@@ -1,4 +1,5 @@
 library(dplyr)
+library(igraph)
 
 data <- read.csv("C:/Users/patricio.hernandez/Downloads/compstat2016/Shiny/wordprob.csv", header = TRUE)
 topicos <- read.csv("C:/Users/patricio.hernandez/Downloads/compstat2016/Shiny/TopicsSubjects.csv", header = TRUE)
