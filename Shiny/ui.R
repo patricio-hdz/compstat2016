@@ -1,7 +1,23 @@
 library(shiny)
+library(dplyr)
 library(shinydashboard)
 
-data <- read.csv("/home/patricio/Documents/Shiny/wordprob.csv", header = TRUE)
+data <- read.csv("C:/Users/patricio.hernandez/Downloads/compstat2016/Shiny/wordprob.csv", header = TRUE)
+topicos <- read.csv("C:/Users/patricio.hernandez/Downloads/compstat2016/Shiny/TopicsSubjects.csv", header = TRUE)
+frame <- data.frame(c("10543","ability"))
+colnames(frame) <- c("Vocabulary")
+expose <- inner_join(data, frame, by='Vocabulary')
+formax <- as.matrix(expose[,-1])
+rownames(formax) <- expose$Vocabulary
+max <- colSums(formax)
+bla <- data.frame(which.max(max))
+
+extra <- row.names(bla)
+expose2 <- filter(topicos, Topic == "Topic1")
+expose2
+extra
+
+
 
 
 ui <- dashboardPage(
